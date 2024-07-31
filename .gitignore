@@ -112,3 +112,5 @@ certs/
 secrets/
 *.env
 runner/app/
+runner/admin/
+runner/nginx/log/

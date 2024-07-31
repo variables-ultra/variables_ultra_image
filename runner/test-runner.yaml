@@ -4,14 +4,18 @@ services:
     container_name: nginx
     networks:
       - variables_ultra_test_internal_net
+    ports:
+      - "5434:5432"
     depends_on:
       - api
       - postgres
+      - admin
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf
       - ./nginx/conf.d:/etc/nginx/conf.d
       - ./nginx/stream.d:/etc/nginx/stream.d
       - ../certs:/etc/ssl/certs
+      - ./nginx/log:/var/log/nginx
 
   proxy:
     build:
@@ -39,10 +43,23 @@ services:
     volumes:
       - ./app/app.jar:/root/app.jar
     env_file:
-      - app/test.env
+      - ./app/test.env
     stdin_open: true
     tty: true
     entrypoint: ["java", "-jar", "/root/app.jar"]
+
+  admin:
+    image: mcr.microsoft.com/openjdk/jdk:21-ubuntu
+    container_name: admin
+    networks:
+      - variables_ultra_test_internal_net
+    volumes:
+      - ./admin/app.jar:/root/app.jar
+    env_file:
+      - ./admin/prod.env
+    stdin_open: true
+    tty: true
+    entrypoint: [ "java", "-jar", "/root/app.jar" ]
 
   postgres:
     image: postgres:16.3

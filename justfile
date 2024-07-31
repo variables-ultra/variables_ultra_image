@@ -4,6 +4,9 @@ set windows-shell := ["cmd.exe", "/c"]
 
 tunnel_version := `cat tunnel/version`
 
+start_elk:
+    docker compose -f ./elk/docker-compose.yaml -p elk --env-file elk/elk.env up -d
+
 start_runner:
     docker compose -f ./runner/test-runner.yaml -p test_runner --env-file runner/app/test.env up -d
     docker exec -it proxy zsh
