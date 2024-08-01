@@ -58,3 +58,31 @@ test_tunnel: build_tunnel
         -p 5432:5432 \
         --name test-tunnel \
         tunnel
+
+certbot domain:
+    certbot certonly --webroot -w ./runner/nginx/certbot --work-dir ./certbot --logs-dir ./certbot/log -d {{domain}}
+
+certbot_renew:
+    #!/usr/bin/env zsh
+    certbot renew --work-dir ./certbot --logs-dir ./certbot/log
+    CERTBOT_DIR="/etc/letsencrypt/live"
+    CERTS_DIR="$(pwd)/certs"
+    if [ ! -d "$CERTBOT_DIR" ]; then
+        echo "Certbot directory not found: $CERTBOT_DIR"
+        exit 1
+    fi
+    for DOMAIN_DIR in "$CERTBOT_DIR"/*/; do
+        DOMAIN=$(basename "$DOMAIN_DIR")
+
+        FULLCHAIN="$DOMAIN_DIR/fullchain.pem"
+        PRIVKEY="$DOMAIN_DIR/privkey.pem"
+
+        if [ -f "$FULLCHAIN" ] && [ -f "$PRIVKEY" ]; then
+            mkdir -p "$CERTS_DIR/${DOMAIN}"
+            cp "$FULLCHAIN" "$CERTS_DIR/${DOMAIN}/fullchain.pem"
+            cp "$PRIVKEY" "$CERTS_DIR/${DOMAIN}/privkey.pem"
+            echo "Copied $DOMAIN fullchain and privkey to $CERTS_DIR"
+        else
+            echo "Missing files in $DOMAIN_DIR"
+        fi
+    done
