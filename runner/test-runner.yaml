@@ -20,15 +20,13 @@ services:
 
   proxy:
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ../
+      dockerfile: runner/proxy/Dockerfile
     container_name: proxy
     networks:
       - variables_ultra_test_internal_net
     volumes:
       - ../secrets/tunnel_ssh_key:/root/.ssh/id_ed25519
-      - ../secrets/proxy_known_hosts:/root/.ssh/known_hosts
-      - ./proxy-entrypoint.sh:/root/proxy-entrypoint.sh
     tty: true
     stdin_open: true
     entrypoint: ["/root/proxy-entrypoint.sh"]
@@ -72,25 +70,18 @@ services:
       - POSTGRES_USER=${VARIABLES_ULTRA_POSTGRES_USERNAME}
       - POSTGRES_PASSWORD=${VARIABLES_ULTRA_POSTGRES_PASSWORD}
 
-#  tunnel-gateway:
-#    image: nginx:latest
-#    container_name: tunnel-gateway
-#    ports:
-#      - "443:443"
-#      - "5432:5432"
-#    volumes:
-#      - ./tunnel-nginx:/etc/nginx
-#      - ../certs:/etc/ssl/certs
-#    networks:
-#      - variables_ultra_test_internal_net
-#
-#  tunnel:
-#    build:
-#      context: ../../ssh_tunnel
-#      dockerfile: Dockerfile
-#    container_name: tunnel
-#    networks:
-#      - variables_ultra_test_internal_net
+  tunnel:
+    build:
+      context: ../
+      dockerfile: tunnel/Dockerfile
+    container_name: tunnel
+    ports:
+      - "2222:22"
+      - "80:80"
+      - "443:443"
+      - "5432:5432"
+    networks:
+      - variables_ultra_test_internal_net
 
 networks:
   variables_ultra_test_internal_net:
